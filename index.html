@@ -1,0 +1,348 @@
+<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; base-uri 'none'; form-action 'none'">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Cap Brothers</title>
+<style>
+:root{--ink:#2b5a7a;--green:#2f7a2a;--orange:#ffb347;--gold:#ffd84a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;font-family:system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);background:linear-gradient(#bfe6ff,#e8f8d8 70%,#cdeeb4)}
+.app{max-width:780px;margin:0 auto;padding:10px 12px 24px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-size:clamp(17px,4.8vw,26px);margin:0;display:flex;gap:8px;align-items:center;letter-spacing:.01em}
+.lang{display:flex;background:#fff;border-radius:999px;padding:3px;border:2px solid #cfe8f5}
+.lang button{border:0;background:transparent;padding:6px 11px;border-radius:999px;font-weight:700;color:var(--ink);cursor:pointer;font-size:13px}
+.lang button[aria-pressed=true]{background:var(--green);color:#fff}
+button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}
+.sub{margin:4px 0 0;font-size:13px}
+.hud{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.pill{background:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700;box-shadow:0 2px 0 #cfe8f5;white-space:nowrap}
+.pill.warn{background:#ffe3d6;color:#a3270a}
+.pill.gold{background:var(--gold);color:#5a3a00;animation:pulse .8s infinite alternate}
+.pill[hidden]{display:none}
+.wrap{position:relative;border-radius:18px;overflow:hidden;border:4px solid #fff;box-shadow:0 6px 18px rgba(43,90,122,.25);background:#bfe6ff}
+canvas{display:block;width:100%;height:auto}
+.ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(191,230,255,.3);padding:10px}
+.ov[hidden]{display:none}
+.card{background:rgba(255,255,255,.96);border-radius:22px;padding:14px 20px;text-align:center;max-width:430px;box-shadow:0 8px 24px rgba(43,90,122,.3);animation:pop .35s ease-out}
+.card h2{margin:4px 0;font-size:clamp(22px,6vw,32px)}
+.card p{margin:6px 0;line-height:1.5;font-size:14px}
+.card .small{font-size:12.5px;opacity:.9}
+.goal{color:#d68a00;text-shadow:0 2px 0 #fff0b0;font-size:clamp(30px,9vw,46px)!important}
+.bonus{font-size:18px!important;font-weight:800;color:#2f7a2a}
+.btn{border:0;background:var(--green);color:#fff;font-weight:800;font-size:16px;padding:11px 22px;border-radius:999px;cursor:pointer;box-shadow:0 4px 0 #1d5a1a;margin:6px 0}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #1d5a1a}
+#toast{position:absolute;top:10px;left:50%;transform:translate(-50%,-20px);background:#fff;border-radius:999px;padding:6px 16px;font-weight:800;font-size:14px;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 3px 8px rgba(0,0,0,.2);white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.pad{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;user-select:none;-webkit-user-select:none}
+.pl{display:flex;gap:10px}
+.pbtn{width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.92);border:3px solid #4a9a3a;color:var(--green);font-size:28px;cursor:pointer;touch-action:none;box-shadow:0 4px 0 #bfe0b0;padding:0}
+.pbtn.on{background:#d9f5c8;transform:translateY(2px)}
+.jump{width:88px;height:88px;background:var(--orange);border-color:#e08a1e;color:#5a3200;font-size:15px;font-weight:900;box-shadow:0 4px 0 #c97a14}
+.jump.on{background:#ffc66e}
+.rs{border:2px solid #cfe8f5;background:#fff;color:var(--ink);font-weight:700;border-radius:999px;padding:9px 14px;cursor:pointer;font-size:13px}
+.hint{text-align:center;font-size:13px;margin:12px 0 0}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{to{transform:scale(1.06)}}
+@media(max-width:380px){.pill{padding:4px 8px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1><svg width="34" height="30" viewBox="0 0 34 30" aria-hidden="true"><path d="M3 22Q3 4 17 4Q31 4 31 22Z" fill="#3fae5a"/><ellipse cx="25" cy="22" rx="8" ry="3" fill="#2f8a45"/><path d="M15 8l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#fff"/></svg>Star Cap Brothers</h1>
+<div class="lang" data-demo="lang-switch" role="group" aria-label="Language">
+<button data-demo="lang-ja" id="lJa">日本語</button><button data-demo="lang-en" id="lEn">EN</button>
+</div>
+</header>
+<p class="sub" data-i18n="pitch"></p>
+<div class="hud" data-demo="hud">
+<span class="pill"><span data-i18n="stage"></span> <span id="hStage">1/3</span></span>
+<span class="pill">🪙 <span id="hCoins">0</span></span>
+<span class="pill">⏱ <span id="hTime">60</span></span>
+<span class="pill"><span id="hLives">♥♥♥</span></span>
+<span class="pill"><span data-i18n="score"></span> <span id="hScore">0</span></span>
+<span class="pill gold" id="hPower" hidden>⭐ <span id="hPow">0</span></span>
+</div>
+<div class="wrap" data-demo="game-screen">
+<canvas id="cv" data-demo="game-canvas" role="img" data-i18n-aria="canvasAria"></canvas>
+<div id="toast" role="status"></div>
+<div class="ov" id="ov" data-demo="overlay"></div>
+</div>
+<div class="pad">
+<div class="pl">
+<button class="pbtn" id="bL" data-demo="btn-left" data-i18n-aria="left">◀</button>
+<button class="pbtn" id="bR" data-demo="btn-right" data-i18n-aria="right">▶</button>
+</div>
+<button class="rs" id="bRs" data-demo="restart" data-i18n="restart"></button>
+<button class="pbtn jump" id="bJ" data-demo="btn-jump" data-i18n-aria="jumpAria"><span data-i18n="jump"></span></button>
+</div>
+<p class="hint" data-i18n="howto"></p>
+</div>
+<script>
+const I18N={
+ja:{title:"Star Cap Brothers｜よしくんの冒険",pitch:"緑帽子のヒゲの働き者「よしくん」が、星の力でひるさがりの草原を駆け抜ける！",stage:"ステージ",score:"スコア",restart:"やり直し",jump:"ジャンプ",left:"左へ移動",right:"右へ移動",jumpAria:"ジャンプ",canvasAria:"ゲーム画面",
+howto:"パソコン：← → で移動、スペースか ↑ でジャンプ ／ スマホ：画面のボタンで操作",
+tip:"⭐を取ると金色に大きくなって、高くジャンプ！モコモコも倒せるよ。",
+start:"スタート",goal:"ゴール！",bonus:"タイムボーナス",next:"つぎのステージへ ▶",allclear:"全ステージクリア！",again:"もういちど遊ぶ",over:"ゲームオーバー",overMsg:"でも大丈夫、もう一度走ろう！",best:"ベスト",
+n1:"1面 はじまりの草原",n2:"2面 ふわふわの丘",n3:"3面 ゴールへの道",
+toastDie:"ライフ -1　がんばれ！",toastTime:"時間切れ！",toastStar:"⭐ スターパワー！",toastEnd:"パワーが終わったよ",toastRs:"ステージをやり直し"},
+en:{title:"Star Cap Brothers – Yoshi-kun's Adventure",pitch:"Yoshi-kun, the hard-working green-capped guy with a mustache, dashes through the afternoon meadow with the power of stars!",stage:"Stage",score:"Score",restart:"Restart",jump:"JUMP",left:"Move left",right:"Move right",jumpAria:"Jump",canvasAria:"Game screen",
+howto:"Computer: ← → to move, Space or ↑ to jump / Phone: use the on-screen buttons",
+tip:"Grab a ⭐ to grow big and golden, jump higher and defeat Mokomoko!",
+start:"Start",goal:"Goal!",bonus:"Time bonus",next:"Next stage ▶",allclear:"All stages clear!",again:"Play again",over:"Game over",overMsg:"No worries, let's run once more!",best:"Best",
+n1:"Stage 1: Meadow Start",n2:"Stage 2: Fluffy Hills",n3:"Stage 3: Road to the Goal",
+toastDie:"Life -1. Keep going!",toastTime:"Time's up!",toastStar:"⭐ Star power!",toastEnd:"Power ended",toastRs:"Stage restarted"}
+};
+const $=id=>document.getElementById(id);
+let lang='en';
+(function(){let l=null;if(window.APP_LANG==='ja'||window.APP_LANG==='en')l=window.APP_LANG;else{try{const q=new URLSearchParams(location.search).get('lang');if(q==='ja'||q==='en')l=q}catch(e){}if(!l){try{const s=localStorage.getItem('lang');if(s==='ja'||s==='en')l=s}catch(e){}}}lang=l||'en'})();
+function t(k,o){let s=(I18N[lang]&&I18N[lang][k])||k;if(o)for(const a in o)s=s.replace('{'+a+'}',o[a]);return s}
+function setLang(l,save){lang=l;if(save){try{localStorage.setItem('lang',l)}catch(e){}}applyLang()}
+function applyLang(){
+document.documentElement.lang=lang;document.title=t('title');
+document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
+document.querySelectorAll('[data-i18n-aria]').forEach(e=>e.setAttribute('aria-label',t(e.dataset.i18nAria)));
+$('lJa').setAttribute('aria-pressed',lang==='ja');$('lEn').setAttribute('aria-pressed',lang==='en');
+updateHud();renderOverlay();
+}
+$('lJa').onclick=()=>setLang('ja',true);$('lEn').onclick=()=>setLang('en',true);
+
+/* ---------- game data ---------- */
+const H=360,GY=300;let W=640;
+const cv=$('cv'),c=cv.getContext('2d');
+function resize(){const nw=innerWidth<600?400:640;W=nw;cv.width=W*2;cv.height=H*2;cv.style.aspectRatio=W+'/'+H}
+addEventListener('resize',resize);resize();
+const LV=[
+{len:3400,time:60,sp:.6,gaps:[[800,70],[1500,80],[2300,90],[2900,80]],plats:[[380,80,90],[1100,85,110],[1900,80,100]],en:[600,1250,1900,2600],star:[1155,85],rows:[[250,40,5],[2000,40,4],[3050,40,5]]},
+{len:4000,time:70,sp:.8,gaps:[[700,80],[1300,90],[1900,90],[2500,100],[3200,90]],plats:[[900,80,100],[1500,90,80],[1600,150,80],[2100,85,120],[2700,90,90],[2800,140,90]],en:[500,1100,1700,2250,2900,3500],star:[1640,150],rows:[[300,40,4],[3500,40,5]]},
+{len:4600,time:80,sp:1,gaps:[[600,90],[1150,100],[1700,100],[2250,100],[2800,100],[3350,100],[3900,100]],plats:[[800,80,90],[1300,85,90],[1400,140,90],[1900,90,90],[2000,150,90],[2450,90,100],[3000,85,100],[3100,140,80],[3600,90,100]],en:[450,900,1450,1950,2500,2700,3200,3700,4300],star:[2045,150],rows:[[250,40,4],[4200,40,5]]}
+];
+const S={state:'title',t:0,level:0,lives:3,score:0,coins:0,scoreStart:0,coinsStart:0,ov:{k:'title'},cam:0,tick:0,time:60,parts:[],lv:null,p:null,goalT:0,bonus:0,pj:false,jbuf:0,dieT:0,best:0};
+try{S.best=+localStorage.getItem('scb_best')||0}catch(e){}
+const keys={left:false,right:false,jump:false};
+
+function build(i){
+const d=LV[i],solids=[];let x=0;
+d.gaps.forEach(g=>{solids.push({x,y:GY,w:g[0]-x,h:H-GY+60});x=g[0]+g[1]});
+solids.push({x,y:GY,w:d.len-x,h:H-GY+60});
+const grounds=solids.slice(),plats=[];
+d.plats.forEach(p=>{const s={x:p[0],y:GY-p[1],w:p[2],h:18};solids.push(s);plats.push(s)});
+const coins=[];
+const row=(cx,h,n)=>{for(let k=0;k<n;k++)coins.push({x:cx+(k-(n-1)/2)*28,y:GY-h,got:false})};
+d.gaps.forEach(g=>{const n=5,cx=g[0]+g[1]/2;for(let k=0;k<n;k++)coins.push({x:cx+(k-2)*28,y:GY-36-Math.sin(Math.PI*k/(n-1))*58,got:false})});
+d.plats.forEach(p=>row(p[0]+p[2]/2,p[1]+24,Math.max(2,Math.floor(p[2]/28))));
+d.rows.forEach(r=>row(r[0],r[1],r[2]));
+const en=d.en.map(x=>({x,y:GY-26,w:28,h:26,vx:-d.sp,min:x-70,max:x+70,dead:0}));
+return{d,solids,grounds,plats,coins,en,star:{x:d.star[0]-12,y:GY-d.star[1]-34,got:false},flagX:d.len-160};
+}
+function mkPlayer(){return{x:60,y:GY-34,w:24,h:34,vx:0,vy:0,face:1,onG:true,coy:0,power:0}}
+function loadStage(i){
+S.level=i;S.lv=build(i);S.p=mkPlayer();S.cam=0;S.time=LV[i].time;S.tick=0;S.scoreStart=S.score;S.coinsStart=S.coins;
+S.state='play';S.ov=null;S.goalT=0;S.parts=[];S.jbuf=0;renderOverlay();toast(t('n'+(i+1)));updateHud();
+}
+function newGame(){S.lives=3;S.score=0;S.coins=0;loadStage(0)}
+S.lv=build(0);S.p=mkPlayer();S.time=LV[0].time;
+
+/* ---------- helpers ---------- */
+const hit=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function starP(x,y,r){c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath()}
+function dot(x,y,r){c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function oval(x,y,rx,ry){c.beginPath();c.ellipse(x,y,rx,ry,0,0,7);c.fill()}
+let tt=0;function toast(m){const e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1900)}
+function spawn(x,y,n,cols,o){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=(o.s||2)*(.4+Math.random());S.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-(o.up||0),g:o.g||0,life:o.l||30,max:o.l||30,c:cols[i%cols.length],r:o.r||3,type:o.type||'c',w:!!o.w})}}
+
+/* ---------- update ---------- */
+function physics(dir,jump){
+const p=S.p,L=S.lv;
+if(jump&&!S.pj)S.jbuf=7;S.pj=jump;if(S.jbuf>0)S.jbuf--;
+const sp=p.power>0?3.7:3.2;
+p.vx+=(dir*sp-p.vx)*(dir?.22:.18);if(Math.abs(p.vx)<.05)p.vx=0;
+if(dir)p.face=dir;
+p.coy=p.onG?6:p.coy-1;
+if(S.jbuf>0&&p.coy>0){p.vy=p.power>0?-13:-11;S.jbuf=0;p.coy=0;p.onG=false}
+if(!jump&&p.vy<-3.5)p.vy+=.6;
+p.vy=Math.min(p.vy+.55,12);
+p.x+=p.vx;p.x=Math.max(0,Math.min(L.d.len-p.w,p.x));
+for(const s of L.solids)if(hit(p,s)){if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;p.vx=0}
+p.y+=p.vy;p.onG=false;
+for(const s of L.solids)if(hit(p,s)){if(p.vy>0){p.y=s.y-p.h;p.onG=true}else p.y=s.y+s.h;p.vy=0}
+}
+function grow(on){const p=S.p;if(on&&p.h<44){p.y-=10;p.h=44;p.x-=3;p.w=30}else if(!on&&p.h>34){p.y+=10;p.h=34;p.x+=3;p.w=24}}
+function die(why){
+if(S.state!=='play')return;
+S.lives--;S.state='dying';S.dieT=55;S.p.vy=-9;S.p.power=0;grow(false);toast(why==='time'?t('toastTime'):t('toastDie'));
+}
+function saveBest(){if(S.score>S.best){S.best=S.score;try{localStorage.setItem('scb_best',S.best)}catch(e){}}}
+function interact(){
+const p=S.p,L=S.lv;
+for(const k of L.coins)if(!k.got&&Math.abs(p.x+p.w/2-k.x)<p.w/2+10&&Math.abs(p.y+p.h/2-k.y)<p.h/2+10){k.got=true;S.coins++;S.score+=10;spawn(k.x,k.y,6,['#ffe14a','#fff'],{s:1.6,l:18,r:2,w:1,type:'s'})}
+const st=L.star;
+if(!st.got&&hit(p,{x:st.x,y:st.y,w:24,h:24})){st.got=true;p.power=600;grow(true);S.score+=50;toast(t('toastStar'));spawn(st.x+12,st.y+12,18,['#ffe14a','#fff','#ffb800'],{s:3.5,l:36,r:4,w:1,type:'s'})}
+for(const e of L.en){
+if(e.dead>0){e.dead--;continue}
+if(e.dead<0)continue;
+e.x+=e.vx;if(e.x<e.min||e.x>e.max)e.vx=-e.vx;
+if(hit(p,e)){
+if(p.power>0){e.dead=20;S.score+=200;spawn(e.x+14,e.y+10,10,['#ffe14a','#fff','#b8793c'],{s:3,l:26,r:3,w:1})}
+else if(p.vy>.5&&p.y+p.h-p.vy<e.y+e.h*.7){e.dead=20;p.vy=keys.jump?-11:-8;S.score+=100;spawn(e.x+14,e.y+20,8,['#fff','#e6c9a0'],{s:2,l:20,r:2.5,w:1})}
+else{die();return}
+}}
+if(p.x+p.w>L.flagX){
+S.state='goal';S.goalT=0;S.bonus=S.time*10;S.score+=S.bonus;
+}
+}
+function step(){
+S.t++;
+for(const q of S.parts){q.x+=q.vx;q.y+=q.vy;q.vy+=q.g;q.life--}
+S.parts=S.parts.filter(q=>q.life>0);
+const p=S.p;
+if(S.state==='play'){
+const dir=(keys.left?-1:0)+(keys.right?1:0);
+physics(dir,keys.jump);
+if(p.power>0){p.power--;if(S.t%3===0)spawn(p.x+Math.random()*p.w,p.y+Math.random()*p.h,1,['#ffe14a','#fff'],{s:.6,up:.6,l:30,r:3+Math.random()*3,w:1,type:'s'});if(p.power===0){grow(false);toast(t('toastEnd'))}}
+if(++S.tick>=60){S.tick=0;S.time--;if(S.time<=0){S.time=0;die('time')}}
+if(S.state==='play'){interact();if(p.y>H+20)die()}
+}else if(S.state==='dying'){
+p.vy+=.5;p.y+=p.vy;if(--S.dieT<=0){if(S.lives>0){S.score=S.scoreStart;S.coins=S.coinsStart;loadStage(S.level)}else{saveBest();S.state='over';S.ov={k:'over'};renderOverlay()}}
+}else if(S.state==='goal'||S.state==='clear'){
+physics(0,false);S.goalT++;
+if(S.goalT%22===1)spawn(80+Math.random()*(W-160),30+Math.random()*130,30,['#ffe14a','#ff7a9c','#7ad7ff','#9dff8a','#fff'],{s:3.6,g:.05,l:70,r:2.6});
+if(S.state==='goal'&&S.goalT>80){
+S.state='clear';
+if(S.level<2)S.ov={k:'clear',bonus:S.bonus,coins:S.coins,score:S.score};
+else{saveBest();S.ov={k:'final',bonus:S.bonus,coins:S.coins,score:S.score}}
+renderOverlay();
+}}else{S.p.vy=0}
+S.cam=Math.max(0,Math.min(S.lv.d.len-W,p.x-W*.35));
+if(S.t%4===0)updateHud();
+}
+
+/* ---------- drawing ---------- */
+function drawPlayer(x,y,w,h,face,legs,pal){
+const s=h/38;c.save();c.translate(x+w/2,y+h);c.scale(s*face,s);
+c.fillStyle=pal.shoe;oval(-6+legs,-2.5,6,3);oval(6-legs,-2.5,6,3);
+c.fillStyle=pal.shirt;rr(-14,-20,6,11,3);c.fill();rr(8,-20,6,11,3);c.fill();
+c.fillStyle='#ffd2a8';dot(-11,-8.5,3);dot(11,-8.5,3);
+c.fillStyle=pal.ov;rr(-10,-19,20,16,6);c.fill();
+c.fillStyle=pal.btn;dot(-5,-16,1.8);dot(5,-16,1.8);
+c.fillStyle='#ffd2a8';dot(0,-25,9.5);
+c.fillStyle='#f0b98c';dot(8,-22,3);
+c.fillStyle='#6b4226';oval(3,-19,7.5,2.8);
+c.fillStyle='#222';oval(3.5,-24,1.3,2.1);
+c.fillStyle=pal.cap;c.beginPath();c.arc(0,-27,10.8,Math.PI,0);c.closePath();c.fill();
+c.fillStyle=pal.capD;oval(6,-27,9,2.8);
+c.fillStyle='#fff';starP(-1,-32,4.2);c.fill();
+c.restore();
+}
+function drawMoko(e,cam){
+const x=e.x-cam,y=e.y;
+if(e.dead>0){c.fillStyle='#b8793c';oval(x+14,y+22,15,5);return}
+const f=Math.sin(S.t*.25+e.x)*3;
+c.fillStyle='rgba(0,0,0,.12)';oval(x+14,y+h0(e),13,3);
+c.fillStyle='#8a5a2a';oval(x+8+f,y+23,6,3.5);oval(x+20-f,y+23,6,3.5);
+c.fillStyle='#ffe9c4';rr(x+5,y+12,18,12,6);c.fill();
+c.fillStyle='#b8793c';c.beginPath();c.ellipse(x+14,y+14,14,13,0,Math.PI,0);c.closePath();c.fill();
+c.fillStyle='#ffe9c4';dot(x+8,y+7,3);dot(x+19,y+5,2.5);dot(x+14,y+10,2);
+c.fillStyle='#222';oval(x+10,y+18,1.8,2.6);oval(x+18,y+18,1.8,2.6);
+c.strokeStyle='#5a3a1a';c.lineWidth=1.6;c.beginPath();c.moveTo(x+7,y+13.5);c.lineTo(x+12,y+15.5);c.moveTo(x+21,y+13.5);c.lineTo(x+16,y+15.5);c.stroke();
+}
+function h0(e){return 25}
+function draw(){
+c.setTransform(2,0,0,2,0,0);
+const cam=S.cam,L=S.lv,tm=S.t;
+const g=c.createLinearGradient(0,0,0,GY);g.addColorStop(0,'#9fd8ff');g.addColorStop(1,'#e8f8d8');c.fillStyle=g;c.fillRect(0,0,W,H);
+const sg=c.createRadialGradient(W-80,56,4,W-80,56,60);sg.addColorStop(0,'#fff8c0');sg.addColorStop(.35,'#ffe98a');sg.addColorStop(1,'rgba(255,233,138,0)');c.fillStyle=sg;dot(W-80,56,60);
+// clouds
+c.fillStyle='rgba(255,255,255,.92)';
+for(let i=0;i<5;i++){const cx=((i*230+60-cam*.2)%(W+260)+(W+260))%(W+260)-120,cy=40+(i*37%70);dot(cx,cy,16);dot(cx+18,cy-8,20);dot(cx+40,cy,15);rr(cx-16,cy,72,15,7);c.fill()}
+// hills
+const hl=(sp,per,col,hh,ry)=>{c.fillStyle=col;const k0=Math.floor(cam*sp/per);for(let i=-1;i<W/per+2;i++){const k=k0+i;c.beginPath();c.ellipse(k*per-cam*sp+per/2,GY+ry,per*.62,hh+(k&1)*22,0,Math.PI,0);c.fill()}};
+hl(.3,300,'#b5e69c',100,6);hl(.55,200,'#92d67c',62,8);
+// ground
+for(const s of L.grounds){if(s.x+s.w<cam-10||s.x>cam+W+10)continue;
+const gx=s.x-cam,gd=c.createLinearGradient(0,GY,0,H);gd.addColorStop(0,'#e0aa6c');gd.addColorStop(1,'#b97f48');c.fillStyle=gd;c.fillRect(gx,GY,s.w,H-GY);
+c.fillStyle='#7ccf6b';c.fillRect(gx,GY,s.w,12);
+const a=Math.max(s.x,Math.floor(cam/30)*30),b=Math.min(s.x+s.w,cam+W+30);
+for(let x=a;x<b;x+=30){c.fillStyle='#7ccf6b';dot(x+15-cam,GY+12,9)}
+c.fillStyle='#5fb85a';c.fillRect(gx,GY,s.w,3);
+c.fillStyle='rgba(120,70,30,.25)';for(let x=a;x<b;x+=47){dot(x-cam,GY+34+(x%3)*10,3)}
+}
+for(const s of L.plats){if(s.x+s.w<cam||s.x>cam+W)continue;const x=s.x-cam;
+c.fillStyle='#e0a040';rr(x,s.y+2,s.w,s.h,7);c.fill();c.fillStyle='#ffcf7a';rr(x,s.y,s.w,s.h-2,7);c.fill();c.fillStyle='#7ccf6b';rr(x,s.y,s.w,7,4);c.fill();
+c.fillStyle='rgba(255,255,255,.6)';for(let k=14;k<s.w-6;k+=24)dot(x+k,s.y+13,2)}
+// flag
+{const fx=L.flagX-cam;c.fillStyle='rgba(0,0,0,.12)';oval(fx+3,GY,12,3);c.fillStyle='#fff';rr(fx,GY-150,6,150,3);c.fill();c.strokeStyle='#cfd8dc';c.lineWidth=1;c.stroke();
+c.fillStyle='#ffd84a';dot(fx+3,GY-152,6);
+const w=Math.sin(tm*.12)*3;c.fillStyle='#3fae5a';c.beginPath();c.moveTo(fx+6,GY-146);c.quadraticCurveTo(fx+28,GY-142+w,fx+46,GY-128+w);c.quadraticCurveTo(fx+28,GY-122,fx+6,GY-110);c.closePath();c.fill();
+c.fillStyle='#fff';starP(fx+20,GY-128+w/2,7);c.fill()}
+// coins
+L.coins.forEach((k,i)=>{if(k.got||k.x<cam-20||k.x>cam+W+20)return;const sx=.35+.65*Math.abs(Math.cos(tm*.07+i)),x=k.x-cam;
+c.fillStyle='#e8a100';oval(x,k.y,9*sx,10);c.fillStyle='#ffd84a';oval(x,k.y,7*sx,8);c.fillStyle='#fff2a0';oval(x-1*sx,k.y-2,2.4*sx,4)});
+// star item
+const st=L.star;if(!st.got){const x=st.x-cam+12,y=st.y+12+Math.sin(tm*.08)*4;
+const gl=c.createRadialGradient(x,y,2,x,y,26);gl.addColorStop(0,'rgba(255,240,140,.9)');gl.addColorStop(1,'rgba(255,216,74,0)');c.fillStyle=gl;dot(x,y,26);
+c.fillStyle='#ffd84a';starP(x,y,15);c.fill();c.strokeStyle='#fff';c.lineWidth=2.5;c.lineJoin='round';c.stroke();c.fillStyle='#7a4a00';oval(x-3.5,y+1,1.4,2);oval(x+3.5,y+1,1.4,2)}
+for(const e of L.en)if(e.x>cam-40&&e.x<cam+W+40)drawMoko(e,cam);
+// player
+{const p=S.p,pw=p.power,gold=pw>0&&(pw>120||(tm>>2)&1);
+let pal={ov:'#ff9f2e',btn:'#ffe14a',cap:'#3fae5a',capD:'#2a8446',shirt:'#fff3d6',shoe:'#7a4a22'};
+if(gold){const cl=['#ffd84a','#fff0a0','#ffb800'],a=cl[(tm>>2)%3],b=cl[((tm>>2)+1)%3];pal={ov:a,btn:'#fff',cap:b,capD:'#e09a00',shirt:'#fff9d0',shoe:'#c98a00'};
+const gr=c.createRadialGradient(p.x+p.w/2-cam,p.y+p.h/2,4,p.x+p.w/2-cam,p.y+p.h/2,p.h*1.2);gr.addColorStop(0,'rgba(255,240,140,.85)');gr.addColorStop(1,'rgba(255,216,74,0)');c.fillStyle=gr;dot(p.x+p.w/2-cam,p.y+p.h/2,p.h*1.2)}
+const legs=!p.onG?5:(Math.abs(p.vx)>.5?Math.sin(tm*.35)*5:0);
+if(S.state==='dying'||S.state==='play'||S.state==='goal'||S.state==='clear'||S.state==='title'||S.state==='over'){
+if(S.state!=='title'&&S.state!=='over'||true)drawPlayer(p.x-cam,p.y+(S.state==='title'?Math.sin(tm*.1)*1.5:0),p.w,p.h,p.face,legs,pal)}}
+// dusk for goal
+if(S.state==='goal'||S.state==='clear'){c.fillStyle='rgba(31,42,90,'+Math.min(.55,S.goalT/80)+')';c.fillRect(0,0,W,H)}
+// particles
+for(const q of S.parts){const a=q.life/q.max,x=q.w?q.x-cam:q.x;c.globalAlpha=Math.min(1,a*1.5);c.fillStyle=q.c;if(q.type==='s'){starP(x,q.y,q.r*(.4+a*.6));c.fill()}else dot(x,q.y,q.r*(.5+a*.5))}
+c.globalAlpha=1;
+}
+function loop(){requestAnimationFrame(loop);const n=performance.now();acc+=Math.min(n-lastT,100);lastT=n;while(acc>=16.67){acc-=16.67;step()}draw()}
+let acc=0,lastT=performance.now();
+
+/* ---------- UI ---------- */
+function updateHud(){
+$('hStage').textContent=(S.level+1)+'/3';$('hCoins').textContent=S.coins;$('hTime').textContent=S.time;
+$('hTime').parentNode.classList.toggle('warn',S.time<=10&&S.state==='play');
+$('hLives').textContent='♥'.repeat(Math.max(0,S.lives));$('hScore').textContent=S.score;
+const pw=S.p&&S.p.power>0;$('hPower').hidden=!pw;if(pw)$('hPow').textContent=Math.ceil(S.p.power/60);
+}
+function renderOverlay(){
+const o=S.ov,el=$('ov');
+if(!o){el.hidden=true;el.innerHTML='';return}
+el.hidden=false;let h='';
+const best=`<p class="small">${t('best')}: ${S.best}</p>`;
+if(o.k==='title')h=`<div style="font-size:34px">⭐</div><h2>Star Cap Brothers</h2><p>${t('pitch')}</p><button class="btn" data-demo="start-game" data-act="start">${t('start')}</button><p class="small">${t('tip')}</p>${best}`;
+else if(o.k==='clear')h=`<h2 class="goal">${t('goal')}</h2><p class="bonus">${t('bonus')} +${o.bonus}</p><p>🪙 ${o.coins}　${t('score')} ${o.score}</p><button class="btn" data-demo="next-stage" data-act="next">${t('next')}</button>`;
+else if(o.k==='final')h=`<h2 class="goal">${t('goal')}</h2><p style="font-weight:800;font-size:18px">🎆 ${t('allclear')} 🎆</p><p class="bonus">${t('bonus')} +${o.bonus}</p><p>🪙 ${o.coins}　${t('score')} ${o.score}</p>${best}<button class="btn" data-demo="play-again" data-act="start">${t('again')}</button>`;
+else h=`<div style="font-size:30px">💫</div><h2>${t('over')}</h2><p>${t('overMsg')}</p><p>${t('score')} ${S.score}</p>${best}<button class="btn" data-demo="retry" data-act="start">${t('again')}</button>`;
+el.innerHTML=`<div class="card" data-demo="overlay-card">${h}</div>`;
+const b=el.querySelector('button');if(b&&!el.dataset.f){try{b.focus({preventScroll:true})}catch(e){}}
+}
+$('ov').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
+if(b.dataset.act==='start')newGame();else if(b.dataset.act==='next')loadStage(S.level+1)});
+$('bRs').onclick=()=>{if(S.state==='title'||S.state==='over'||S.state==='clear')return;S.score=S.scoreStart;S.coins=S.coinsStart;loadStage(S.level);toast(t('toastRs'))};
+
+/* ---------- input ---------- */
+const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',KeyZ:'jump'};
+addEventListener('keydown',e=>{const k=KM[e.code];if(!k)return;if(S.state==='play'||S.state==='goal')e.preventDefault();keys[k]=true});
+addEventListener('keyup',e=>{const k=KM[e.code];if(k)keys[k]=false});
+addEventListener('blur',()=>{keys.left=keys.right=keys.jump=false});
+let lastPtr=0;
+function bindBtn(id,name){const el=$(id);
+const on=e=>{e.preventDefault();lastPtr=Date.now();keys[name]=true;el.classList.add('on');try{el.setPointerCapture(e.pointerId)}catch(_){}};
+const off=()=>{keys[name]=false;el.classList.remove('on')};
+el.addEventListener('pointerdown',on);['pointerup','pointercancel','lostpointercapture'].forEach(v=>el.addEventListener(v,off));
+el.addEventListener('contextmenu',e=>e.preventDefault());
+el.addEventListener('click',()=>{if(Date.now()-lastPtr>600){keys[name]=true;el.classList.add('on');setTimeout(()=>{keys[name]=false;el.classList.remove('on')},name==='jump'?260:450)}});
+}
+bindBtn('bL','left');bindBtn('bR','right');bindBtn('bJ','jump');
+
+applyLang();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
