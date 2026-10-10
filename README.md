@@ -3,6 +3,7 @@
 
 
 - ▶ **Try it:** https://yoshi20071101.github.io/star-cap-brothers/
+- 🎬 **Demo video:** https://yoshi20071101.github.io/star-cap-brothers/demo.mp4
 
 ## About
 
